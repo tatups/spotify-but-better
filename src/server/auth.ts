@@ -1,11 +1,17 @@
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
+import { eq } from "drizzle-orm";
+import {
+  type GetServerSidePropsContext,
+  type NextApiRequest,
+  type NextApiResponse,
+} from "next";
 import {
   getServerSession,
   type DefaultSession,
   type NextAuthOptions,
 } from "next-auth";
 import { type Adapter } from "next-auth/adapters";
-import DiscordProvider from "next-auth/providers/discord";
+import SpotifyProvider from "next-auth/providers/spotify";
 
 import { env } from "~/env";
 import { db } from "~/server/db";
@@ -44,14 +50,55 @@ declare module "next-auth" {
  */
 export const authOptions: NextAuthOptions = {
   callbacks: {
-    session: ({ session, user }) => ({
-      ...session,
-      user: {
-        ...session.user,
-        id: user.id,
-      },
-    }),
+    session: async ({ session, user, token, trigger }) => {
+      console.log(
+        "session",
+        session,
+        "user",
+        user,
+        "token",
+        token,
+        "trigger",
+        trigger,
+      );
+      return {
+        ...session,
+        user: {
+          ...session.user,
+          id: user.id,
+        },
+      };
+    },
+    jwt: async (params) => {
+      const { token, user, account, profile, trigger } = params;
+      // console.log("jwt", params);
+
+      return token;
+    },
+    async signIn(params) {
+      //console.log("signIn", params);
+
+      if (params.account) {
+        await db
+          .update(accounts)
+          .set({
+            expires_at: params.account.expires_at,
+            access_token: params.account.access_token,
+            refresh_token: params.account.refresh_token,
+            scope: params.account.scope,
+          })
+          .where(eq(accounts.userId, params.user.id));
+      }
+
+      return true;
+    },
   },
+  events: {
+    session: (params) => {
+      //console.log("session event", params);
+    },
+  },
+
   adapter: DrizzleAdapter(db, {
     usersTable: users,
     accountsTable: accounts,
@@ -59,9 +106,11 @@ export const authOptions: NextAuthOptions = {
     verificationTokensTable: verificationTokens,
   }) as Adapter,
   providers: [
-    DiscordProvider({
-      clientId: env.DISCORD_CLIENT_ID,
-      clientSecret: env.DISCORD_CLIENT_SECRET,
+    SpotifyProvider({
+      clientId: env.SPOTIFY_CLIENT_ID,
+      clientSecret: env.SPOTIFY_CLIENT_SECRET,
+      authorization:
+        "https://accounts.spotify.com/authorize?scope=user-read-email user-library-read user-read-playback-state user-modify-playback-state user-modify-playback-state",
     }),
     /**
      * ...add more providers here.
@@ -81,3 +130,12 @@ export const authOptions: NextAuthOptions = {
  * @see https://next-auth.js.org/configuration/nextjs
  */
 export const getServerAuthSession = () => getServerSession(authOptions);
+
+export function auth(
+  ...args:
+    | [GetServerSidePropsContext["req"], GetServerSidePropsContext["res"]]
+    | [NextApiRequest, NextApiResponse]
+    | []
+) {
+  return getServerSession(...args, authOptions);
+}
