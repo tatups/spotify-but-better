@@ -26,7 +26,7 @@ const userNavigation = [
 
 interface StackedLayoutProps {
   children: React.ReactNode;
-  session?: Session;
+  session?: Session | null;
 }
 
 export default function StackedLayout({
@@ -186,7 +186,10 @@ export default function StackedLayout({
             </div>
           </main>
         </div>
-        <footer>{user && <PlaybackInfo />}</footer>
+        <footer>
+          {session?.user && <PlaybackInfo />}{" "}
+          {!user && <div className="text-3xl">fdsfdfsd</div>}
+        </footer>
       </div>
     </>
   );

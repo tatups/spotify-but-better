@@ -1,12 +1,12 @@
 import { getSpotifyAccessToken } from "../utils";
 import {
-  type Album,
+  type MyAlbum,
   type PaginatedResponse,
   type PlaybackState,
   type StartResumePlaybackRequest,
 } from "./types";
 
-export async function GetMyAlbums(): Promise<PaginatedResponse<Album>> {
+export async function GetMyAlbums(): Promise<PaginatedResponse<MyAlbum>> {
   const token = await getSpotifyAccessToken();
   if (!token) {
     throw new Error("No access token found");
@@ -22,7 +22,7 @@ export async function GetMyAlbums(): Promise<PaginatedResponse<Album>> {
     );
   }
 
-  const data = (await response.json()) as PaginatedResponse<Album>;
+  const data = (await response.json()) as PaginatedResponse<MyAlbum>;
 
   return data;
 }
@@ -51,12 +51,15 @@ export async function getPlaybackState(): Promise<PlaybackState | null> {
   return data;
 }
 
-export async function startResumePlayback(params: StartResumePlaybackRequest) {
+export async function startResumePlayback(
+  params: StartResumePlaybackRequest,
+  currentTrackId?: string,
+) {
   const token = await getSpotifyAccessToken();
   if (!token) {
     throw new Error("No access token found");
   }
-
+  console.log(JSON.stringify(params), currentTrackId, "startResumePlayback");
   const response = await fetch("https://api.spotify.com/v1/me/player/play", {
     headers: { Authorization: `Bearer ${token}` },
     body: JSON.stringify(params),
@@ -64,12 +67,21 @@ export async function startResumePlayback(params: StartResumePlaybackRequest) {
   });
 
   if (!response.ok) {
+    const errorText = await response.text();
+
+    console.error(
+      `Failed to start/resume playback: ${response.status} ${response.statusText}`,
+      errorText,
+    );
+
     throw new Error(
       `Failed to start/resume playback: ${response.status} ${response.statusText}`,
     );
   }
 
-  return await getPlaybackState();
+  return currentTrackId
+    ? await pollForPlaybackState(currentTrackId, 5, 500, true)
+    : await getPlaybackState();
 }
 
 export async function stopPlayback() {
@@ -139,12 +151,16 @@ async function pollForPlaybackState(
   trackId: string,
   tries = 5,
   interval = 500,
+  trackIdNotEqual = false,
 ): Promise<PlaybackState | null> {
   try {
     for (let i = 0; i < tries; i++) {
       const state = await getPlaybackState();
       console.log("Polling for playback state", state?.actions);
-      if (state?.item.id !== trackId) {
+      if (
+        (trackIdNotEqual && state?.item.id === trackId) ||
+        (!trackIdNotEqual && state?.item.id !== trackId)
+      ) {
         return state;
       }
       await new Promise((resolve) => setTimeout(resolve, interval));

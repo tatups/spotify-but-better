@@ -41,24 +41,26 @@ export type PlaybackActions = {
 };
 
 export type Album = {
+  album_type: string;
+  total_tracks: number;
+  available_markets: string[];
+  external_urls: { spotify: string };
+  href: string;
+  id: string;
+  images: { url: string; height: number; width: number }[];
+  name: string;
+  release_date: string;
+  release_date_precision: string;
+  restrictions: { reason: string };
+  type: "album";
+  uri: string;
+  artists: Artist[];
+  tracks: PaginatedResponse<Track>;
+};
+
+export type MyAlbum = {
   added_at: string;
-  album: {
-    album_type: string;
-    total_tracks: number;
-    available_markets: string[];
-    external_urls: { spotify: string };
-    href: string;
-    id: string;
-    images: { url: string; height: number; width: number }[];
-    name: string;
-    release_date: string;
-    release_date_precision: string;
-    restrictions: { reason: string };
-    type: string;
-    uri: string;
-    artists: Artist[];
-    tracks: PaginatedResponse<Track>;
-  };
+  album: Album;
 };
 
 export type Artist = {
@@ -90,7 +92,7 @@ export type Track = {
   name: string;
   preview_url: string;
   track_number: number;
-  type: string;
+  type: "track";
   uri: string;
   is_local: boolean;
 };
@@ -119,4 +121,5 @@ export type StartResumePlaybackRequest = {
   context_uri?: string;
   offset?: { position?: number; uri?: string };
   position_ms: number;
+  uris?: string[];
 };
