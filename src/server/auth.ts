@@ -51,16 +51,16 @@ declare module "next-auth" {
 export const authOptions: NextAuthOptions = {
   callbacks: {
     session: async ({ session, user, token, trigger }) => {
-      console.log(
-        "session",
-        session,
-        "user",
-        user,
-        "token",
-        token,
-        "trigger",
-        trigger,
-      );
+      // console.log(
+      //   "session",
+      //   session,
+      //   "user",
+      //   user,
+      //   "token",
+      //   token,
+      //   "trigger",
+      //   trigger,
+      // );
       return {
         ...session,
         user: {

@@ -14,7 +14,6 @@ export default function Player({ playback }: PlaybackProps) {
   const {
     playback: currentPlayback,
     isLoading,
-    trackProgress,
     onPlay,
     onPause,
     onNext,
@@ -44,8 +43,8 @@ export default function Player({ playback }: PlaybackProps) {
           <>
             <span>{currentPlayback.item.name}</span>
             <span>
-              {dayjs.duration(trackProgress).format("m:ss")}/
-              {dayjs.duration(currentPlayback.item.duration_ms).format("m:ss")}
+              {dayjs.duration(currentPlayback?.progress_ms ?? 0).format("m:ss")}
+              /{dayjs.duration(currentPlayback.item.duration_ms).format("m:ss")}
             </span>
             {isLoading && <span>Loading...</span>}
 

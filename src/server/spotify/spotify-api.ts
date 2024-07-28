@@ -1,12 +1,12 @@
 import { getSpotifyAccessToken } from "../utils";
 import {
-  type MyAlbum,
   type PaginatedResponse,
   type PlaybackState,
+  type ResponseAlbum,
   type StartResumePlaybackRequest,
 } from "./types";
 
-export async function GetMyAlbums(): Promise<PaginatedResponse<MyAlbum>> {
+export async function GetMyAlbums(): Promise<PaginatedResponse<ResponseAlbum>> {
   const token = await getSpotifyAccessToken();
   if (!token) {
     throw new Error("No access token found");
@@ -22,7 +22,7 @@ export async function GetMyAlbums(): Promise<PaginatedResponse<MyAlbum>> {
     );
   }
 
-  const data = (await response.json()) as PaginatedResponse<MyAlbum>;
+  const data = (await response.json()) as PaginatedResponse<ResponseAlbum>;
 
   return data;
 }
@@ -149,21 +149,27 @@ export async function previousTrack(currentTrackId: string) {
 
 async function pollForPlaybackState(
   trackId: string,
-  tries = 5,
+  tries = 3,
   interval = 500,
-  trackIdNotEqual = false,
+  trackIdEqual = false,
 ): Promise<PlaybackState | null> {
   try {
     for (let i = 0; i < tries; i++) {
+      await new Promise((resolve) => setTimeout(resolve, interval));
+
       const state = await getPlaybackState();
-      console.log("Polling for playback state", state?.actions);
+      console.log(
+        "Polling for playback state",
+        state?.item.id,
+        trackId,
+        trackIdEqual,
+      );
       if (
-        (trackIdNotEqual && state?.item.id === trackId) ||
-        (!trackIdNotEqual && state?.item.id !== trackId)
+        (trackIdEqual && state?.item.id === trackId) ||
+        (!trackIdEqual && state?.item.id !== trackId)
       ) {
         return state;
       }
-      await new Promise((resolve) => setTimeout(resolve, interval));
     }
     throw new Error("Polling for playback state timed out");
   } catch (error) {

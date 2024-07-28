@@ -14,7 +14,7 @@ export type PlaybackState = {
   repeat_state: string;
   shuffle_state: boolean;
   context: {
-    type: string;
+    type: "album";
     href: string;
     external_urls: { spotify: string };
     uri: string;
@@ -55,8 +55,13 @@ export type Album = {
   type: "album";
   uri: string;
   artists: Artist[];
-  tracks: PaginatedResponse<Track>;
+  tracks: Track[];
 };
+
+export type ResponseAlbum = {
+  album: Album & { tracks: PaginatedResponse<SimpleTrack> };
+  added_at: string;
+} & Album;
 
 export type MyAlbum = {
   added_at: string;
@@ -71,7 +76,7 @@ export type Artist = {
   uri: string;
 };
 
-export type Track = {
+export type SimpleTrack = {
   artists: Artist[];
   available_markets: string[];
   disc_number: number;
@@ -95,6 +100,10 @@ export type Track = {
   type: "track";
   uri: string;
   is_local: boolean;
+};
+
+export type Track = SimpleTrack & {
+  album: Album;
 };
 
 export type PaginatedResponse<T> = {

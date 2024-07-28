@@ -1,7 +1,7 @@
 "use client";
 
 import dayjs from "@/dayjs";
-import { type Album, type Track } from "@/server/spotify/types";
+import { type Album, type MyAlbum, type Track } from "@/server/spotify/types";
 import {
   Disclosure,
   DisclosureButton,
@@ -12,11 +12,12 @@ import {
   PlayIcon,
   RocketLaunchIcon,
 } from "@heroicons/react/16/solid";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { twMerge } from "tailwind-merge";
 import { usePlayer } from "~/hooks/player";
+import { useSpotifyStore } from "~/store";
 
-function TrackItem({ track, number }: { track: Track; number: number }) {
+function TrackItem({ context, track }: { context: Album; track: Track }) {
   const { playback, onPause, onPlay } = usePlayer();
   const [isHovering, setIsHovering] = useState(false);
 
@@ -43,7 +44,10 @@ function TrackItem({ track, number }: { track: Track; number: number }) {
       )}
 
       {isHovering && !isPlaying && (
-        <PlayIcon className="size-6 cursor-pointer text-green-500" onClick={() => onPlay(track) } />
+        <PlayIcon
+          className="size-6 cursor-pointer text-green-500"
+          onClick={() => onPlay(track, context)}
+        />
       )}
 
       {!isHovering && isPlaying && (
@@ -60,7 +64,7 @@ function TrackItem({ track, number }: { track: Track; number: number }) {
   );
 }
 
-export default function AlbumListItem({ album }: { album: Album }) {
+function AlbumListItem({ album }: { album: Album }) {
   return (
     <li className="">
       <Disclosure>
@@ -70,11 +74,27 @@ export default function AlbumListItem({ album }: { album: Album }) {
           <span>{album.name}</span>
         </DisclosureButton>
         <DisclosurePanel className="p-4">
-          {album.tracks.items.map((track, idx) => (
-            <TrackItem key={track.id} track={track} number={idx + 1} />
+          {album.tracks.map((track, idx) => (
+            <TrackItem key={track.id} track={track} context={album} />
           ))}
         </DisclosurePanel>
       </Disclosure>
     </li>
+  );
+}
+
+export default function AlbumList({ albums }: { albums: MyAlbum[] }) {
+  const { setAlbums } = useSpotifyStore();
+
+  useEffect(() => {
+    setAlbums(albums.map((el) => el.album));
+  }, [albums, setAlbums]);
+
+  return (
+    <ul className="divide-y divide-pink-500 rounded-md">
+      {albums.map((album) => (
+        <AlbumListItem key={album.album.id} album={album.album} />
+      ))}
+    </ul>
   );
 }
