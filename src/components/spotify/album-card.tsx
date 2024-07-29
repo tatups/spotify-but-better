@@ -25,7 +25,7 @@ export default async function AlbumCard() {
   //   };
   // });
 
-  const hehe = data.items.map((item) => {
+  const mapped = data.items.map((item) => {
     const tracks = item.album.tracks.items.map((track) => {
       return {
         ...track,
@@ -37,13 +37,13 @@ export default async function AlbumCard() {
   });
 
   return (
-    <div className="card bg-slate-100">
+    <div className="card bg-fuchsia-400">
       <div className="card-body">
-        <h1 className="card-title border-b border-red-500 p-4 text-lg">
+        <h1 className="card-title border-b border-yellow-700 p-4 text-lg font-semibold">
           Your albums
         </h1>
 
-        <AlbumList albums={hehe} />
+        <AlbumList albums={mapped} />
       </div>
     </div>
   );

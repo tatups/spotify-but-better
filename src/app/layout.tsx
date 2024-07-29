@@ -17,6 +17,7 @@ export default async function RootLayout({
   //dayjs();
 
   const session = await auth();
+  console.log("we are rendering the RootLayout server component!");
 
   return (
     <html lang="en" className={`${GeistSans.variable} h-full`}>

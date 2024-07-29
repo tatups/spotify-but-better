@@ -1,5 +1,6 @@
 "use client";
 import { DisclosureButton } from "@headlessui/react";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { twMerge } from "tailwind-merge";
 
@@ -17,19 +18,19 @@ export function NavigationItems({ navigationItems }: NavigationItemsProps) {
   return (
     <div className="hidden sm:-my-px sm:ml-6 sm:flex sm:space-x-8">
       {mappedNavigationItems.map((item) => (
-        <a
+        <Link
           key={item.name}
           href={item.href}
           aria-current={item.current ? "page" : undefined}
           className={twMerge(
             item.current
-              ? "border-indigo-500 text-gray-900"
-              : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700",
+              ? "border-yellow-300 text-yellow-300"
+              : "hover:border-gray-yellow border-transparent text-yellow-300 hover:text-yellow-200",
             "inline-flex items-center border-b-2 px-1 pt-1 text-sm font-medium",
           )}
         >
           {item.name}
-        </a>
+        </Link>
       ))}
     </div>
   );
@@ -49,7 +50,7 @@ export function MobileNavigationItems({
       {navigationItems.map((item) => (
         <DisclosureButton
           key={item.name}
-          as="a"
+          as={Link}
           href={item.href}
           aria-current={item.current ? "page" : undefined}
           className={twMerge(

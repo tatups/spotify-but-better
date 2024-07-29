@@ -18,11 +18,11 @@ export type PlaybackState = {
     href: string;
     external_urls: { spotify: string };
     uri: string;
-  };
+  } | null;
   timestamp: number;
-  progress_ms: number;
+  progress_ms: number | null;
   is_playing: boolean;
-  item: Track;
+  item: Track | null;
   currently_playing_type: string;
   actions: PlaybackActions;
 };
@@ -66,6 +66,40 @@ export type ResponseAlbum = {
 export type MyAlbum = {
   added_at: string;
   album: Album;
+};
+
+export type Playlist = {
+  collaborative: boolean;
+  description: string | null;
+  external_urls: {
+    spotify: string;
+  };
+  href: string;
+  id: string;
+  images: {
+    url: string;
+    height: number;
+    width: number;
+  }[];
+  name: string;
+  owner: {
+    display_name: string;
+    external_urls: {
+      spotify: string;
+    };
+    href: string;
+    id: string;
+    type: string;
+    uri: string;
+  };
+  public: boolean | null;
+  snapshot_id: string;
+  tracks: {
+    href: string;
+    total: number;
+  };
+  type: "playlist";
+  uri: string;
 };
 
 export type Artist = {

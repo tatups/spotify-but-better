@@ -2,6 +2,7 @@ import { getSpotifyAccessToken } from "../utils";
 import {
   type PaginatedResponse,
   type PlaybackState,
+  type Playlist,
   type ResponseAlbum,
   type StartResumePlaybackRequest,
 } from "./types";
@@ -23,6 +24,27 @@ export async function GetMyAlbums(): Promise<PaginatedResponse<ResponseAlbum>> {
   }
 
   const data = (await response.json()) as PaginatedResponse<ResponseAlbum>;
+
+  return data;
+}
+
+export async function GetMyPlaylists(): Promise<PaginatedResponse<Playlist>> {
+  const token = await getSpotifyAccessToken();
+  if (!token) {
+    throw new Error("No access token found");
+  }
+
+  const response = await fetch("https://api.spotify.com/v1/me/playlists", {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      `Failed to fetch albums: ${response.status} ${response.statusText}`,
+    );
+  }
+
+  const data = (await response.json()) as PaginatedResponse<Playlist>;
 
   return data;
 }
@@ -158,15 +180,10 @@ async function pollForPlaybackState(
       await new Promise((resolve) => setTimeout(resolve, interval));
 
       const state = await getPlaybackState();
-      console.log(
-        "Polling for playback state",
-        state?.item.id,
-        trackId,
-        trackIdEqual,
-      );
+
       if (
-        (trackIdEqual && state?.item.id === trackId) ||
-        (!trackIdEqual && state?.item.id !== trackId)
+        (trackIdEqual && state?.item?.id === trackId) ||
+        (!trackIdEqual && state?.item?.id !== trackId)
       ) {
         return state;
       }

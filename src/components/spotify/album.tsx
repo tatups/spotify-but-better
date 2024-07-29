@@ -1,13 +1,19 @@
 "use client";
 
 import dayjs from "@/dayjs";
-import { type Album, type MyAlbum, type Track } from "@/server/spotify/types";
+import {
+  type Album,
+  type MyAlbum,
+  type PlaybackState,
+  type Track,
+} from "@/server/spotify/types";
 import {
   Disclosure,
   DisclosureButton,
   DisclosurePanel,
 } from "@headlessui/react";
 import {
+  ChevronRightIcon,
   HandRaisedIcon,
   PlayIcon,
   RocketLaunchIcon,
@@ -21,7 +27,7 @@ function TrackItem({ context, track }: { context: Album; track: Track }) {
   const { playback, onPause, onPlay } = usePlayer();
   const [isHovering, setIsHovering] = useState(false);
 
-  const current = playback?.item.id === track.id;
+  const current = playback.item?.id === track.id;
   const isPlaying = playback?.is_playing && current;
 
   return (
@@ -64,14 +70,28 @@ function TrackItem({ context, track }: { context: Album; track: Track }) {
   );
 }
 
-function AlbumListItem({ album }: { album: Album }) {
+function AlbumListItem({
+  album,
+  playback,
+}: {
+  album: Album;
+  playback: PlaybackState;
+}) {
   return (
-    <li className="">
+    <li
+      className={twMerge(
+        "cursor-pointer",
+        playback.context?.uri === album.uri ? "bg-orange-400" : "",
+      )}
+    >
       <Disclosure>
-        <DisclosureButton className="space-x-2 p-4">
-          <span>{album.artists.map((el) => el.name).join(", ")}</span>
-          <span> - </span>
-          <span>{album.name}</span>
+        <DisclosureButton className="group flex items-center p-4 font-semibold">
+          <ChevronRightIcon className="size-8 group-data-[open]:rotate-90" />
+          <div className="space-x-2">
+            <span>{album.artists.map((el) => el.name).join(", ")}</span>
+            <span> - </span>
+            <span>{album.name}</span>
+          </div>
         </DisclosureButton>
         <DisclosurePanel className="p-4">
           {album.tracks.map((track, idx) => (
@@ -84,16 +104,20 @@ function AlbumListItem({ album }: { album: Album }) {
 }
 
 export default function AlbumList({ albums }: { albums: MyAlbum[] }) {
-  const { setAlbums } = useSpotifyStore();
+  const { setAlbums, playback } = useSpotifyStore();
 
   useEffect(() => {
     setAlbums(albums.map((el) => el.album));
   }, [albums, setAlbums]);
 
   return (
-    <ul className="divide-y divide-pink-500 rounded-md">
+    <ul className="divide-y divide-yellow-700 rounded-md">
       {albums.map((album) => (
-        <AlbumListItem key={album.album.id} album={album.album} />
+        <AlbumListItem
+          key={album.album.id}
+          album={album.album}
+          playback={playback}
+        />
       ))}
     </ul>
   );

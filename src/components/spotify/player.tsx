@@ -22,7 +22,7 @@ export default function Player({ playback }: PlaybackProps) {
 
   return (
     <div className="flex h-16 items-center justify-center space-x-2 bg-fuchsia-800 px-4 py-8 text-lg text-yellow-500">
-      {currentPlayback !== null && (
+      {currentPlayback.item !== null && (
         <div className="flex items-center space-x-4">
           <BackwardIcon
             className="size-8 cursor-pointer"
@@ -36,7 +36,7 @@ export default function Player({ playback }: PlaybackProps) {
           ) : (
             <PlayCircleIcon
               className="size-12 cursor-pointer"
-              onClick={() => onPlay}
+              onClick={() => onPlay()}
             />
           )}
           <ForwardIcon className="size-8 cursor-pointer" onClick={onNext} />
@@ -46,7 +46,7 @@ export default function Player({ playback }: PlaybackProps) {
               {dayjs.duration(currentPlayback?.progress_ms ?? 0).format("m:ss")}
               /{dayjs.duration(currentPlayback.item.duration_ms).format("m:ss")}
             </span>
-            {isLoading && <span>Loading...</span>}
+            {/* {isLoading && <span>Loading...</span>} */}
 
             <span></span>
           </>

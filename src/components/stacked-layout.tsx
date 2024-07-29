@@ -10,13 +10,15 @@ import { UserIcon } from "@heroicons/react/16/solid";
 import { Bars3Icon, BellIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { type Session } from "next-auth";
 import Image from "next/image";
+import Link from "next/link";
 import { MobileNavigationItems, NavigationItems } from "./navigation-items";
 import NavigationMenuItem from "./navigation-menu-item";
 import PlaybackInfo from "./spotify/playback-info";
 
 const navigation = [
   { name: "Dashboard", href: "/", current: false },
-  { name: "Me", href: "/me", current: false },
+  { name: "Albums", href: "/albums", current: false },
+  { name: "Playlists", href: "/playlists", current: false },
 ];
 const userNavigation = [
   { name: "Your Profile", href: "#", onClick: undefined },
@@ -46,8 +48,11 @@ export default function StackedLayout({
         <body class="h-full">
         ```
       */}
-      <div className="flex min-h-full flex-col">
-        <Disclosure as="nav" className="border-b border-gray-200 bg-white">
+      <div
+        className="grid max-h-screen min-h-full"
+        style={{ gridTemplateRows: "auto 1fr auto" }}
+      >
+        <Disclosure as="nav" className="bg-fuchsia-800 text-yellow-500">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="flex h-16 justify-between">
               <div className="flex">
@@ -126,7 +131,7 @@ export default function StackedLayout({
 
           <DisclosurePanel className="sm:hidden">
             <MobileNavigationItems navigationItems={navigationItems} />
-            <div className="border-t border-gray-200 pb-3 pt-4">
+            <div className="border-t border-yellow-200 pb-3 pt-4">
               <div className="flex items-center px-4">
                 <div className="flex-shrink-0">
                   {!!user?.image && (
@@ -160,8 +165,8 @@ export default function StackedLayout({
                 {userNavigation.map((item) => (
                   <DisclosureButton
                     key={item.name}
-                    as="a"
-                    href={item.href}
+                    as={Link}
+                    href={item.href ?? ""}
                     className="block px-4 py-2 text-base font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-800"
                   >
                     {item.name}
@@ -172,7 +177,7 @@ export default function StackedLayout({
           </DisclosurePanel>
         </Disclosure>
 
-        <div className="flex-grow py-10">
+        <div className="overflow-auto bg-fuchsia-600 py-10">
           <header>
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
               <h1 className="text-3xl font-bold leading-tight tracking-tight text-gray-900">
@@ -180,13 +185,13 @@ export default function StackedLayout({
               </h1>
             </div>
           </header>
-          <main>
+          <main className="">
             <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
               {children}
             </div>
           </main>
         </div>
-        <footer>
+        <footer className="">
           {session?.user && <PlaybackInfo />}{" "}
           {!user && <div className="text-3xl">fdsfdfsd</div>}
         </footer>

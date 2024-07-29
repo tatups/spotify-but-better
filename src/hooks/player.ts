@@ -48,7 +48,7 @@ function navigateWithinContext(
     );
   }
 
-  state.setCurrentTrack(track);
+  state.setCurrentTrack(track, 0);
 
   return action(state.playback?.item?.id);
 }
@@ -58,12 +58,23 @@ function onStartResume(
   context: Album | undefined,
   playable: Track | undefined,
 ) {
-  const currentTrack = state.playback?.item;
+  const currentTrack = state.playback.item;
+
+  if (!playable && !context && state.playback.is_playing === true) {
+    return;
+  }
+
+  const newPlaybackState = { ...state.playback };
+  newPlaybackState.is_playing = true;
+
   //case 1: if the current track is paused and the user clicks on the same track, we resume playing
+
   if (
     state.playback?.is_playing === false &&
-    currentTrack?.uri === playable?.uri
+    (currentTrack?.uri === playable?.uri || (!playable && !context))
   ) {
+    state.setPlayback(newPlaybackState);
+
     return Actions.playAction({
       position_ms: state.playback?.progress_ms ?? 0,
     });
@@ -73,26 +84,22 @@ function onStartResume(
     throw new Error("Context is required when switching to a new track");
   }
 
-  //must switch context if the track is from a different album (or playlist in the future)
-  if (state.playback?.context?.uri !== context?.uri) {
-    state.setContext(context);
-  }
+  newPlaybackState.context = {
+    external_urls: { spotify: context.external_urls.spotify },
+    href: context.href,
+    type: "album",
+    uri: context.uri,
+  };
+  newPlaybackState.progress_ms = 0;
+  newPlaybackState.item = playable ?? context.tracks?.[0] ?? null;
 
-  //case 2: if the user clicks on a different track
-  if (playable) {
-    state.setCurrentTrack(playable, 0);
-
-    return Actions.playAction(getOnPlayPayload(playable, context), playable.id);
-  }
-
-  //case 3: if the user clicks on a different album, we play the first track of that album
-  const firstTrack = context.tracks?.[0];
-  if (!firstTrack) {
+  if (!newPlaybackState.item) {
     throw new Error("No tracks found in the context");
   }
 
-  state.setCurrentTrack(firstTrack, 0);
-  return Actions.playAction(getOnPlayPayload(undefined, context));
+  state.setPlayback(newPlaybackState);
+
+  return Actions.playAction(getOnPlayPayload(playable, context), playable?.id);
 }
 
 function getOnPlayPayload(
@@ -122,8 +129,13 @@ function getOnPlayPayload(
 
 export function usePlayer(playbackState?: PlaybackState | null) {
   const spotifyState = useSpotifyStore();
-  const { playback, setPlayback, incrementTrackProgress, ...rest } =
-    useSpotifyStore();
+  const {
+    playback,
+    setPlayback,
+    incrementTrackProgress,
+    setTrackProgress,
+    ...rest
+  } = useSpotifyStore();
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -137,16 +149,23 @@ export function usePlayer(playbackState?: PlaybackState | null) {
       if (!playback?.is_playing) return;
 
       incrementTrackProgress(1);
+
+      if (playback.progress_ms === playback.item?.duration_ms) {
+        setTrackProgress(0);
+      }
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [playback, incrementTrackProgress]);
+  }, [playback, incrementTrackProgress, setTrackProgress]);
 
   const handleAction = async (action: () => Promise<PlaybackState | null>) => {
     setIsLoading(true);
     try {
       const res = await action();
-      setPlayback(res);
+
+      if (res) {
+        setPlayback(res);
+      }
     } catch (error) {
       console.error("Action failed", error);
     } finally {
@@ -158,9 +177,6 @@ export function usePlayer(playbackState?: PlaybackState | null) {
     playable: Track | undefined = undefined,
     context: Album | undefined = undefined,
   ) => {
-    if (playable === undefined || playable?.id !== playback?.item?.id) {
-    }
-
     await onStartResume(spotifyState, context, playable);
   };
 

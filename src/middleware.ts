@@ -7,7 +7,7 @@ export function middleware(request: NextRequest) {
   //set a new header for the request url path
   requestHeaders.set("x-app-url", request.url);
 
-  console.log("we are in middleware.ts");
+  //console.log("we are in middleware.ts");
 
   requestHeaders.set("x-hello-from-middleware1", "Hello from middleware1");
 
