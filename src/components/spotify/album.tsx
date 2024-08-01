@@ -15,15 +15,16 @@ import {
 } from "@heroicons/react/16/solid";
 import { useEffect, useState } from "react";
 import { twMerge } from "tailwind-merge";
+import useSpotifyPlayer from "~/hooks/player";
 import { useSpotifyStore } from "~/store";
 
 function TrackItem({ context, track }: { context: Album; track: Track }) {
-  const playback = useSpotifyStore.use.sdkPlaybackState();
-  const player = useSpotifyStore.use.sdkPlayer();
+  const { player, playbackState: playback, onPlay } = useSpotifyPlayer();
+
   const [isHovering, setIsHovering] = useState(false);
 
   const current = playback?.track_window.current_track?.id === track.id;
-  const isPlaying = playback?.paused && current;
+  const isPlaying = !playback?.paused && current;
 
   return (
     <div
@@ -50,7 +51,11 @@ function TrackItem({ context, track }: { context: Album; track: Track }) {
         <PlayIcon
           className="size-6 cursor-pointer text-green-500"
           onClick={() => {
-            void player?.resume();
+            if (current) {
+              void player?.resume();
+            } else {
+              void onPlay(track, context);
+            }
           }}
         />
       )}
@@ -70,13 +75,14 @@ function TrackItem({ context, track }: { context: Album; track: Track }) {
 }
 
 function AlbumListItem({ album }: { album: Album }) {
-  const playback = useSpotifyStore.use.sdkPlaybackState();
+  const player = useSpotifyPlayer();
+  const playbackState = player.playbackState;
 
   return (
     <li
       className={twMerge(
         "cursor-pointer",
-        playback?.context?.uri === album.uri ? "bg-orange-400" : "",
+        playbackState?.context?.uri === album.uri ? "bg-orange-400" : "",
       )}
     >
       <Disclosure>

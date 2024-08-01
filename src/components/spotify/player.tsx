@@ -2,9 +2,7 @@
 import dayjs from "@/dayjs";
 import { BackwardIcon, ForwardIcon } from "@heroicons/react/20/solid";
 import { PauseCircleIcon, PlayCircleIcon } from "@heroicons/react/24/solid";
-import useInitSpotifyPlayer from "~/hooks/player-v2";
-
-import { useSpotifyStore } from "~/store";
+import useSpotifyPlayer, { useInitSpotifyPlayer } from "~/hooks/player";
 
 type PlayerProps = {
   spotfifyAccessToken: string;
@@ -13,11 +11,7 @@ type PlayerProps = {
 export default function Player({ spotfifyAccessToken }: PlayerProps) {
   useInitSpotifyPlayer(spotfifyAccessToken);
 
-  const { playbackState, player } = useSpotifyStore((state) => ({
-    playbackState: state.sdkPlaybackState,
-    player: state.sdkPlayer,
-  }));
-
+  const { player, playbackState } = useSpotifyPlayer();
   const currentTrack = playbackState?.track_window.current_track ?? null;
 
   return (

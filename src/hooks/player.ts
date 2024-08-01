@@ -1,103 +1,106 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+import {
+  type SpotifyPlayer,
+  type WebPlaybackState,
+} from "~/server/spotify/player-types";
 import * as Actions from "~/server/spotify/server-actions";
 import {
   type Album,
-  type PlaybackState,
   type StartResumePlaybackRequest,
   type Track,
 } from "~/server/spotify/types";
 import { type SpotifyState, useSpotifyStore } from "~/store";
 
-function navigateWithinContext(
-  state: SpotifyState,
-  direction: "next" | "previous",
+function initializePlayer(
+  token: string,
+  setSdkPlayer: SpotifyState["setSdkPlayer"],
+  setSdkPlaybackState: SpotifyState["setSdkPlaybackState"],
 ) {
-  const context = state.playback?.context;
-  const action =
-    direction === "next" ? Actions.nextAction : Actions.previousAction;
+  const scriptId = "spotify-player";
 
-  if (!context || !state.playback?.item) {
-    return Promise.resolve(null);
+  if (!document.getElementById(scriptId)) {
+    const script = document.createElement("script");
+    script.src = "https://sdk.scdn.co/spotify-player.js";
+    script.async = true;
+    script.defer = true;
+    script.id = scriptId;
+    script.onload = () => {
+      console.log("Spotify script loaded");
+    };
+    script.onerror = (error) => {
+      console.error("Spotify script failed to load", error);
+    };
+
+    document.body.appendChild(script);
+  } else {
+    console.log("sdk script already appended");
   }
+  if (!window.onSpotifyWebPlaybackSDKReady) {
+    window.onSpotifyWebPlaybackSDKReady = () => {
+      const player = new window.Spotify.Player({
+        name: "spotify-but-better",
+        getOAuthToken: (cb) => {
+          cb(token);
+        },
+        volume: 0.5,
+      });
 
-  const contextMap = {
-    album: state.albums,
-    // artist: state.artists,
-    // playlist: state.playlists,
-  };
-  const tracks =
-    (contextMap[context.type] ?? []).find((el) => el.uri === context.uri)
-      ?.tracks ?? [];
+      player.addListener("ready", (params) => {
+        console.log("Ready with Device ID", params?.device_id);
+      });
 
-  const currentIndex = tracks.findIndex(
-    (item) => item.uri === state.playback?.item?.uri,
-  );
+      player.addListener("not_ready", (params) => {
+        console.log("Device ID has gone offline", params?.device_id);
+      });
 
-  if (currentIndex === -1) {
-    throw new Error(`Could not find current track for ${context.type}`);
+      player.addListener("player_state_changed", (params) => {
+        console.log("player_state_changed", params);
+        setSdkPlaybackState((params as WebPlaybackState) ?? null);
+      });
+
+      player
+        .connect()
+        .then((success) => {
+          if (success) {
+            console.log(
+              "The Web Playback SDK successfully connected to Spotify!",
+            );
+            setSdkPlayer(player);
+          }
+        })
+        .catch((error) => {
+          console.error("Failed to connect to Spotify player", error);
+        });
+    };
+  } else {
+    console.log("onSpotifyWebPlaybackSDKReady already appended");
   }
-
-  const newIndex = direction === "next" ? currentIndex + 1 : currentIndex - 1;
-
-  //use the current track if we are attempting to go back from the first track
-  const track = newIndex < 0 ? tracks[currentIndex] : tracks[newIndex];
-
-  if (!track) {
-    throw new Error(
-      `Could not find current track for ${context.type} in "${direction}" direction`,
-    );
-  }
-
-  state.setCurrentTrack(track, 0);
-
-  return action(state.playback?.item?.id);
 }
 
-function onStartResume(
-  state: SpotifyState,
+function onStart(
+  player: SpotifyPlayer | null,
+  playerState: WebPlaybackState | null,
   context: Album | undefined,
   playable: Track | undefined,
 ) {
-  const currentTrack = state.playback.item;
-
-  if (!playable && !context && state.playback.is_playing === true) {
+  if (!player || !playerState) {
     return;
   }
 
-  const newPlaybackState = { ...state.playback };
-  newPlaybackState.is_playing = true;
-
+  const isPlaying = playerState?.paused === false;
+  const currentTrack = playerState?.track_window.current_track;
   //case 1: if the current track is paused and the user clicks on the same track, we resume playing
 
   if (
-    state.playback?.is_playing === false &&
+    !isPlaying &&
     (currentTrack?.uri === playable?.uri || (!playable && !context))
   ) {
-    state.setPlayback(newPlaybackState);
-
-    return Actions.playAction({
-      position_ms: state.playback?.progress_ms ?? 0,
-    });
+    void player.resume();
   }
 
   if (!context) {
     throw new Error("Context is required when switching to a new track");
   }
-
-  newPlaybackState.context = {
-    external_urls: { spotify: context.external_urls.spotify },
-    href: context.href,
-    type: "album",
-    uri: context.uri,
-  };
-  newPlaybackState.progress_ms = 0;
-  newPlaybackState.item = playable ?? context.tracks?.[0] ?? null;
-
-  if (!newPlaybackState.item) {
-    throw new Error("No tracks found in the context");
-  }
-
-  state.setPlayback(newPlaybackState);
 
   return Actions.playAction(getOnPlayPayload(playable, context), playable?.id);
 }
@@ -127,72 +130,54 @@ function getOnPlayPayload(
   };
 }
 
-export function usePlayer(playbackState?: PlaybackState | null) {
-  const spotifyState = useSpotifyStore();
-  const {
-    playback,
-    setPlayback,
-    incrementTrackProgress,
-    setTrackProgress,
-    ...rest
-  } = useSpotifyStore();
-  const [isLoading, setIsLoading] = useState(false);
+export function useInitSpotifyPlayer(token: string) {
+  const setSdkPlayer = useSpotifyStore.use.setSdkPlayer();
+  const setSdkPlaybackState = useSpotifyStore.use.setSdkPlaybackState();
+  const sdkPlaybackState = useSpotifyStore.use.sdkPlaybackState();
+  const setTrackPosition = useSpotifyStore.use.setPosition();
+  const sdkPlayer = useSpotifyStore.use.sdkPlayer();
 
   useEffect(() => {
-    if (playbackState) {
-      setPlayback(playbackState);
+    if (!sdkPlayer) {
+      initializePlayer(token, setSdkPlayer, setSdkPlaybackState);
     }
-  }, [playbackState, setPlayback]);
+    return () => {
+      if (sdkPlayer) {
+        sdkPlayer.disconnect();
+      }
+    };
+  }, [token, setSdkPlayer, setSdkPlaybackState, sdkPlayer]);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      if (!playback?.is_playing) return;
+    if (sdkPlaybackState) {
+      const interval = setInterval(() => {
+        if (sdkPlaybackState.paused || sdkPlaybackState.loading) {
+          return;
+        }
+        setTrackPosition(sdkPlaybackState.position + 1000);
+      }, 1000);
 
-      incrementTrackProgress(1);
-
-      if (playback.progress_ms === playback.item?.duration_ms) {
-        setTrackProgress(0);
-      }
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [playback, incrementTrackProgress, setTrackProgress]);
-
-  const handleAction = async (action: () => Promise<PlaybackState | null>) => {
-    setIsLoading(true);
-    try {
-      const res = await action();
-
-      if (res) {
-        setPlayback(res);
-      }
-    } catch (error) {
-      console.error("Action failed", error);
-    } finally {
-      setIsLoading(false);
+      return () => {
+        clearInterval(interval);
+      };
     }
-  };
+  }, [sdkPlaybackState, setTrackPosition]);
+}
+
+export default function useSpotifyPlayer() {
+  const sdkPlaybackState = useSpotifyStore.use.sdkPlaybackState();
+  const sdkPlayer = useSpotifyStore.use.sdkPlayer();
 
   const onPlay = async (
     playable: Track | undefined = undefined,
     context: Album | undefined = undefined,
   ) => {
-    await onStartResume(spotifyState, context, playable);
+    await onStart(sdkPlayer, sdkPlaybackState, context, playable);
   };
 
-  const onPause = () => handleAction(Actions.pauseAction);
-
-  const onNext = () =>
-    handleAction(() => navigateWithinContext(spotifyState, "next"));
-  const onPrevious = () =>
-    handleAction(() => navigateWithinContext(spotifyState, "previous"));
-
   return {
-    playback,
-    isLoading,
     onPlay,
-    onPause,
-    onNext,
-    onPrevious,
+    playbackState: sdkPlaybackState,
+    player: sdkPlayer,
   };
 }
