@@ -43,6 +43,11 @@ declare module "next-auth" {
   // }
 }
 
+const spotifyScopes =
+  "streaming \
+user-read-email \
+user-read-private \
+user-library-read user-read-playback-state user-modify-playback-state user-modify-playback-state";
 /**
  * Options for NextAuth.js used to configure adapters, providers, callbacks, etc.
  *
@@ -110,7 +115,7 @@ export const authOptions: NextAuthOptions = {
       clientId: env.SPOTIFY_CLIENT_ID,
       clientSecret: env.SPOTIFY_CLIENT_SECRET,
       authorization:
-        "https://accounts.spotify.com/authorize?scope=user-read-email user-library-read user-read-playback-state user-modify-playback-state user-modify-playback-state",
+        "https://accounts.spotify.com/authorize?scope=" + spotifyScopes,
     }),
     /**
      * ...add more providers here.

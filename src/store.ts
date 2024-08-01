@@ -6,6 +6,10 @@ import {
   type PlaybackState,
   type Track,
 } from "~/server/spotify/types";
+import {
+  type SpotifyPlayer,
+  type WebPlaybackState,
+} from "./server/spotify/player-types";
 
 export interface SpotifyState {
   playback: PlaybackState;
@@ -17,6 +21,13 @@ export interface SpotifyState {
   setContext: (context: Album) => void;
   albums: Album[];
   setAlbums: (albums: Album[]) => void;
+
+  sdkPlayer: SpotifyPlayer | null;
+  sdkPlaybackState: WebPlaybackState | null;
+
+  setSdkPlayer: (player: SpotifyPlayer) => void;
+  setSdkPlaybackState: (state: WebPlaybackState) => void;
+  setPosition: (position: number) => void;
 }
 
 export const emptyPlaybackState = {
@@ -52,9 +63,40 @@ export const emptyPlaybackState = {
   },
 };
 
-const useSpotifyStore = create<SpotifyState>()(
+import { type StoreApi, type UseBoundStore } from "zustand";
+
+type WithSelectors<S> = S extends { getState: () => infer T }
+  ? S & { use: { [K in keyof T]: () => T[K] } }
+  : never;
+
+const createSelectors = <S extends UseBoundStore<StoreApi<object>>>(
+  _store: S,
+) => {
+  const store = _store as WithSelectors<typeof _store>;
+  store.use = {};
+  for (const k of Object.keys(store.getState())) {
+    (store.use as any)[k] = () => store((s) => s[k as keyof typeof s]);
+  }
+
+  return store;
+};
+
+const useSpotifyStoreBase = create<SpotifyState>()(
   devtools(
     (set) => ({
+      sdkPlaybackState: null,
+      sdkPlayer: null,
+      setSdkPlayer: (player: SpotifyPlayer) => set({ sdkPlayer: player }),
+      setSdkPlaybackState: (state: WebPlaybackState) =>
+        set({ sdkPlaybackState: state }),
+      setPosition: (position: number) =>
+        set((state) => ({
+          ...state,
+          sdkPlaybackState: state.sdkPlaybackState
+            ? { ...state.sdkPlaybackState, position }
+            : null,
+        })),
+
       playback: { ...emptyPlaybackState },
       setPlayback: (playback: PlaybackState) => set({ playback }),
       setIsPlaying: (isPlaying: boolean) =>
@@ -109,5 +151,7 @@ const useSpotifyStore = create<SpotifyState>()(
     },
   ),
 );
+
+const useSpotifyStore = createSelectors(useSpotifyStoreBase);
 
 export { useSpotifyStore };

@@ -2,49 +2,69 @@
 import dayjs from "@/dayjs";
 import { BackwardIcon, ForwardIcon } from "@heroicons/react/20/solid";
 import { PauseCircleIcon, PlayCircleIcon } from "@heroicons/react/24/solid";
-import { type PlaybackState } from "~/server/spotify/types";
+import useInitSpotifyPlayer from "~/hooks/player-v2";
 
-import { usePlayer } from "~/hooks/player";
+import { useSpotifyStore } from "~/store";
 
-type PlaybackProps = {
-  playback: PlaybackState | null;
+type PlayerProps = {
+  spotfifyAccessToken: string;
 };
 
-export default function Player({ playback }: PlaybackProps) {
-  const {
-    playback: currentPlayback,
-    isLoading,
-    onPlay,
-    onPause,
-    onNext,
-    onPrevious,
-  } = usePlayer(playback);
+export default function Player({ spotfifyAccessToken }: PlayerProps) {
+  useInitSpotifyPlayer(spotfifyAccessToken);
+
+  const { playbackState, player } = useSpotifyStore((state) => ({
+    playbackState: state.sdkPlaybackState,
+    player: state.sdkPlayer,
+  }));
+
+  const currentTrack = playbackState?.track_window.current_track ?? null;
 
   return (
     <div className="flex h-16 items-center justify-center space-x-2 bg-fuchsia-800 px-4 py-8 text-lg text-yellow-500">
-      {currentPlayback.item !== null && (
+      {player !== null && (
         <div className="flex items-center space-x-4">
           <BackwardIcon
             className="size-8 cursor-pointer"
-            onClick={onPrevious}
+            onClick={() => {
+              playbackState?.track_window.current_track
+                ? void player?.previousTrack()
+                : null;
+            }}
           />
-          {currentPlayback.is_playing ? (
+          {!playbackState?.paused ? (
             <PauseCircleIcon
               className="size-12 cursor-pointer"
-              onClick={onPause}
+              onClick={() => {
+                void player?.pause();
+              }}
             />
           ) : (
             <PlayCircleIcon
               className="size-12 cursor-pointer"
-              onClick={() => onPlay()}
+              onClick={() => {
+                void player?.resume();
+              }}
             />
           )}
-          <ForwardIcon className="size-8 cursor-pointer" onClick={onNext} />
+          <ForwardIcon
+            className="size-8 cursor-pointer"
+            onClick={() => {
+              playbackState?.track_window.current_track
+                ? void player?.nextTrack()
+                : null;
+            }}
+          />
           <>
-            <span>{currentPlayback.item.name}</span>
+            <span>{currentTrack?.name}</span>
             <span>
-              {dayjs.duration(currentPlayback?.progress_ms ?? 0).format("m:ss")}
-              /{dayjs.duration(currentPlayback.item.duration_ms).format("m:ss")}
+              {dayjs
+                .duration(playbackState?.position ?? 0, "milliseconds")
+                .format("m:ss")}
+              /
+              {dayjs
+                .duration(playbackState?.duration ?? 0, "milliseconds")
+                .format("m:ss")}
             </span>
             {/* {isLoading && <span>Loading...</span>} */}
 

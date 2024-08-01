@@ -1,12 +1,7 @@
 "use client";
 
 import dayjs from "@/dayjs";
-import {
-  type Album,
-  type MyAlbum,
-  type PlaybackState,
-  type Track,
-} from "@/server/spotify/types";
+import { type Album, type MyAlbum, type Track } from "@/server/spotify/types";
 import {
   Disclosure,
   DisclosureButton,
@@ -20,15 +15,15 @@ import {
 } from "@heroicons/react/16/solid";
 import { useEffect, useState } from "react";
 import { twMerge } from "tailwind-merge";
-import { usePlayer } from "~/hooks/player";
 import { useSpotifyStore } from "~/store";
 
 function TrackItem({ context, track }: { context: Album; track: Track }) {
-  const { playback, onPause, onPlay } = usePlayer();
+  const playback = useSpotifyStore.use.sdkPlaybackState();
+  const player = useSpotifyStore.use.sdkPlayer();
   const [isHovering, setIsHovering] = useState(false);
 
-  const current = playback.item?.id === track.id;
-  const isPlaying = playback?.is_playing && current;
+  const current = playback?.track_window.current_track?.id === track.id;
+  const isPlaying = playback?.paused && current;
 
   return (
     <div
@@ -44,7 +39,9 @@ function TrackItem({ context, track }: { context: Album; track: Track }) {
         <span>
           <HandRaisedIcon
             className="size-6 cursor-pointer text-gray-500"
-            onClick={onPause}
+            onClick={() => {
+              void player?.pause();
+            }}
           />
         </span>
       )}
@@ -52,7 +49,9 @@ function TrackItem({ context, track }: { context: Album; track: Track }) {
       {isHovering && !isPlaying && (
         <PlayIcon
           className="size-6 cursor-pointer text-green-500"
-          onClick={() => onPlay(track, context)}
+          onClick={() => {
+            void player?.resume();
+          }}
         />
       )}
 
@@ -70,18 +69,14 @@ function TrackItem({ context, track }: { context: Album; track: Track }) {
   );
 }
 
-function AlbumListItem({
-  album,
-  playback,
-}: {
-  album: Album;
-  playback: PlaybackState;
-}) {
+function AlbumListItem({ album }: { album: Album }) {
+  const playback = useSpotifyStore.use.sdkPlaybackState();
+
   return (
     <li
       className={twMerge(
         "cursor-pointer",
-        playback.context?.uri === album.uri ? "bg-orange-400" : "",
+        playback?.context?.uri === album.uri ? "bg-orange-400" : "",
       )}
     >
       <Disclosure>
@@ -104,8 +99,7 @@ function AlbumListItem({
 }
 
 export default function AlbumList({ albums }: { albums: MyAlbum[] }) {
-  const { setAlbums, playback } = useSpotifyStore();
-
+  const setAlbums = useSpotifyStore.use.setAlbums();
   useEffect(() => {
     setAlbums(albums.map((el) => el.album));
   }, [albums, setAlbums]);
@@ -113,11 +107,7 @@ export default function AlbumList({ albums }: { albums: MyAlbum[] }) {
   return (
     <ul className="divide-y divide-yellow-700 rounded-md">
       {albums.map((album) => (
-        <AlbumListItem
-          key={album.album.id}
-          album={album.album}
-          playback={playback}
-        />
+        <AlbumListItem key={album.album.id} album={album.album} />
       ))}
     </ul>
   );

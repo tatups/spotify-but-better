@@ -46,11 +46,10 @@ export type SpotifyPlayerEventPlayerStateChanged = {
   message: WebPlaybackState;
 };
 
-type EventPayload =
-  | SpotifyPlayerEventReady
-  | SpotifyPlayerEventNotReady
-  | SpotifyPlayerEventPlayerStateChanged
-  | undefined;
+type EventPayload = {
+  device_id: string;
+  message: WebPlaybackState | undefined;
+};
 
 export type WebPlaybackState = {
   context: {
@@ -67,11 +66,13 @@ export type WebPlaybackState = {
     skipping_prev?: boolean;
   };
   paused: boolean;
+  loading: boolean;
   position: number;
+  duration: number;
   repeat_mode: 0 | 1 | 2;
   shuffle: boolean;
   track_window: {
-    current_track: WebPlaybackTrack;
+    current_track: WebPlaybackTrack | null;
     previous_tracks: WebPlaybackTrack[];
     next_tracks: WebPlaybackTrack[];
   };
