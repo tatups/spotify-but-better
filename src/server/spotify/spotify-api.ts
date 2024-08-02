@@ -169,6 +169,25 @@ export async function previousTrack(currentTrackId: string) {
   return await pollForPlaybackState(currentTrackId);
 }
 
+export async function transferPlayback(deviceId: string) {
+  const token = await getSpotifyAccessToken();
+  if (!token) {
+    throw new Error("No access token found");
+  }
+
+  const response = await fetch(`https://api.spotify.com/v1/me/player`, {
+    headers: { Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ device_ids: [deviceId] }),
+    method: "PUT",
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      `Failed to transfer playback: ${response.status} ${response.statusText}`,
+    );
+  }
+}
+
 async function pollForPlaybackState(
   trackId: string,
   tries = 3,

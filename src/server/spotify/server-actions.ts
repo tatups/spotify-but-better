@@ -4,6 +4,7 @@ import {
   previousTrack,
   startResumePlayback,
   stopPlayback,
+  transferPlayback,
 } from "./spotify-api";
 import { type StartResumePlaybackRequest } from "./types";
 
@@ -38,4 +39,17 @@ async function previousAction(currentTrackId: string) {
   return await previousTrack(currentTrackId);
 }
 
-export { nextAction, pauseAction, playAction, previousAction };
+async function transferPlaybackAction(deviceId: string) {
+  // Server Action
+  "use server";
+
+  return await transferPlayback(deviceId);
+}
+
+export {
+  nextAction,
+  pauseAction,
+  playAction,
+  previousAction,
+  transferPlaybackAction,
+};

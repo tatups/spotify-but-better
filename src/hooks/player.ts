@@ -47,6 +47,8 @@ function initializePlayer(
 
       player.addListener("ready", (params) => {
         console.log("Ready with Device ID", params?.device_id);
+        setSdkPlayer(player);
+        void Actions.transferPlaybackAction(params?.device_id);
       });
 
       player.addListener("not_ready", (params) => {
@@ -65,7 +67,6 @@ function initializePlayer(
             console.log(
               "The Web Playback SDK successfully connected to Spotify!",
             );
-            setSdkPlayer(player);
           }
         })
         .catch((error) => {
