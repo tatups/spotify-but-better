@@ -58,17 +58,19 @@ export type Album = {
   tracks: Track[];
 };
 
-export type ResponseAlbum = {
+export type ResponseMyAlbum = {
   album: Album & { tracks: PaginatedResponse<SimpleTrack> };
   added_at: string;
-} & Album;
+};
+
+export type ResponseAlbum = Album & { tracks: PaginatedResponse<SimpleTrack> };
 
 export type MyAlbum = {
   added_at: string;
   album: Album;
 };
 
-export type Playlist = {
+export type SimplePlaylist = {
   collaborative: boolean;
   description: string | null;
   external_urls: {
@@ -100,6 +102,16 @@ export type Playlist = {
   };
   type: "playlist";
   uri: string;
+};
+
+export type Playlist = SimplePlaylist & {
+  tracks: PaginatedResponse<PlaylistTrack>;
+};
+
+type PlaylistTrack = {
+  added_at: string;
+  is_local: boolean;
+  track: Track;
 };
 
 export type Artist = {
@@ -166,3 +178,5 @@ export type StartResumePlaybackRequest = {
   position_ms: number;
   uris?: string[];
 };
+
+export type Context = Album | Playlist;

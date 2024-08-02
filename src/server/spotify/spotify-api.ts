@@ -1,13 +1,18 @@
 import { getSpotifyAccessToken } from "../utils";
 import {
+  type Album,
   type PaginatedResponse,
   type PlaybackState,
   type Playlist,
   type ResponseAlbum,
+  type ResponseMyAlbum,
+  type SimplePlaylist,
   type StartResumePlaybackRequest,
 } from "./types";
 
-export async function GetMyAlbums(): Promise<PaginatedResponse<ResponseAlbum>> {
+export async function GetMyAlbums(): Promise<
+  PaginatedResponse<ResponseMyAlbum>
+> {
   const token = await getSpotifyAccessToken();
   if (!token) {
     throw new Error("No access token found");
@@ -23,12 +28,14 @@ export async function GetMyAlbums(): Promise<PaginatedResponse<ResponseAlbum>> {
     );
   }
 
-  const data = (await response.json()) as PaginatedResponse<ResponseAlbum>;
+  const data = (await response.json()) as PaginatedResponse<ResponseMyAlbum>;
 
   return data;
 }
 
-export async function GetMyPlaylists(): Promise<PaginatedResponse<Playlist>> {
+export async function GetMyPlaylists(): Promise<
+  PaginatedResponse<SimplePlaylist>
+> {
   const token = await getSpotifyAccessToken();
   if (!token) {
     throw new Error("No access token found");
@@ -44,9 +51,55 @@ export async function GetMyPlaylists(): Promise<PaginatedResponse<Playlist>> {
     );
   }
 
-  const data = (await response.json()) as PaginatedResponse<Playlist>;
+  const data = (await response.json()) as PaginatedResponse<SimplePlaylist>;
 
   return data;
+}
+
+export async function getPlaylist(playlistId: string): Promise<Playlist> {
+  const token = await getSpotifyAccessToken();
+  if (!token) {
+    throw new Error("No access token found");
+  }
+
+  const response = await fetch(
+    `https://api.spotify.com/v1/playlists/${playlistId}`,
+    {
+      headers: { Authorization: `Bearer ${token}` },
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      `Failed to fetch playlist: ${response.status} ${response.statusText}`,
+    );
+  }
+
+  const data = (await response.json()) as Playlist;
+
+  return data;
+}
+
+export async function getAlbum(albumId: string): Promise<Album> {
+  const token = await getSpotifyAccessToken();
+  if (!token) {
+    throw new Error("No access token found");
+  }
+
+  const response = await fetch(`https://api.spotify.com/v1/albums/${albumId}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      `Failed to fetch album: ${response.status} ${response.statusText}`,
+    );
+  }
+
+  const data = (await response.json()) as ResponseAlbum;
+  const tracks = data.tracks.items.map((el) => ({ ...el, album: data }));
+
+  return { ...data, tracks };
 }
 
 export async function getPlaybackState(): Promise<PlaybackState | null> {

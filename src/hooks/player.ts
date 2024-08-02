@@ -5,7 +5,7 @@ import {
 } from "~/server/spotify/player-types";
 import * as Actions from "~/server/spotify/server-actions";
 import {
-  type Album,
+  type Context,
   type StartResumePlaybackRequest,
   type Track,
 } from "~/server/spotify/types";
@@ -81,7 +81,7 @@ function initializePlayer(
 function onStart(
   player: SpotifyPlayer | null,
   playerState: WebPlaybackState | null,
-  context: Album | undefined,
+  context: Context | undefined,
   playable: Track | undefined,
 ) {
   if (!player || !playerState) {
@@ -108,7 +108,7 @@ function onStart(
 
 function getOnPlayPayload(
   playable: Track | undefined = undefined,
-  context: Album | undefined = undefined, //Optional. Spotify URI of the context to play. Valid contexts are albums, artists & playlists.
+  context: Context | undefined = undefined, //Optional. Spotify URI of the context to play. Valid contexts are albums, artists & playlists.
   fromPosition = 0,
 ): StartResumePlaybackRequest {
   const base = { position_ms: fromPosition, context_uri: context?.uri };
@@ -171,7 +171,7 @@ export default function useSpotifyPlayer() {
 
   const onPlay = async (
     playable: Track | undefined = undefined,
-    context: Album | undefined = undefined,
+    context: Context | undefined = undefined,
   ) => {
     await onStart(sdkPlayer, sdkPlaybackState, context, playable);
   };
