@@ -1,6 +1,7 @@
 import { getSpotifyAccessToken } from "../utils";
 import {
   type Album,
+  type LikedTrack,
   type MyAlbum,
   type PaginatedResponse,
   type PlaybackState,
@@ -251,6 +252,43 @@ export async function transferPlayback(deviceId: string) {
       `Failed to transfer playback: ${response.status} ${response.statusText}`,
     );
   }
+}
+
+async function getToken() {
+  const token = await getSpotifyAccessToken();
+  if (!token) {
+    throw new Error("No access token found");
+  }
+
+  return token;
+}
+
+export async function getMySavedTracks(): Promise<LikedTrack[]> {
+  const token = await getToken();
+
+  const params = new URLSearchParams({
+    limit: "50",
+  });
+  const res = await fetch(
+    "https://api.spotify.com/v1/me/tracks?" + params.toString(),
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    },
+  );
+
+  if (!res.ok) {
+    console.log(await res.json(), "res");
+    throw new Error(
+      `Failed to fetch saved tracks: ${res.status} ${res.statusText}`,
+    );
+  }
+
+  const data = (await res.json()) as PaginatedResponse<LikedTrack>;
+  console.log(data, "hehe");
+
+  return data.items;
 }
 
 async function pollForPlaybackState(

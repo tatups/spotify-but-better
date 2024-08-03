@@ -152,6 +152,11 @@ export type Track = SimpleTrack & {
   album: Album;
 };
 
+export type LikedTrack = {
+  added_at: string;
+  track: Track;
+};
+
 export type PaginatedResponse<T> = {
   href: string;
   items: T[];
