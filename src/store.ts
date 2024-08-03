@@ -1,26 +1,17 @@
 import type {} from "@redux-devtools/extension"; // required for devtools typing
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
-import {
-  type Album,
-  type PlaybackState,
-  type Track,
-} from "~/server/spotify/types";
+import { type MyAlbum, type SimplePlaylist } from "~/server/spotify/types";
 import {
   type SpotifyPlayer,
   type WebPlaybackState,
 } from "./server/spotify/player-types";
 
 export interface SpotifyState {
-  playback: PlaybackState;
-  setPlayback: (playback: PlaybackState) => void;
-  setCurrentTrack: (track: Track, progressMs?: number | undefined) => void;
-  setIsPlaying: (isPlaying: boolean) => void;
-  incrementTrackProgress: (seconds: number) => void;
-  setTrackProgress: (trackProgress: number) => void;
-  setContext: (context: Album) => void;
-  albums: Album[];
-  setAlbums: (albums: Album[]) => void;
+  albums: MyAlbum[];
+  setAlbums: (albums: MyAlbum[]) => void;
+  playlists: SimplePlaylist[];
+  setPlaylists: (playlists: SimplePlaylist[]) => void;
 
   sdkPlayer: SpotifyPlayer | null;
   sdkPlaybackState: WebPlaybackState | null;
@@ -97,54 +88,10 @@ const useSpotifyStoreBase = create<SpotifyState>()(
             : null,
         })),
 
-      playback: { ...emptyPlaybackState },
-      setPlayback: (playback: PlaybackState) => set({ playback }),
-      setIsPlaying: (isPlaying: boolean) =>
-        set((state) => ({
-          ...state,
-          playback: { ...state.playback, is_playing: isPlaying },
-        })),
-      setCurrentTrack: (
-        track: Track,
-        progressMs: number | undefined = undefined,
-      ) =>
-        set((state) => ({
-          playback: {
-            ...state.playback,
-            progress_ms: progressMs ?? state.playback.progress_ms,
-            item: track,
-          },
-        })),
-      incrementTrackProgress: (seconds: number) =>
-        set((state) => ({
-          playback: {
-            ...state.playback,
-            progress_ms: (state.playback.progress_ms ?? 0) + seconds * 1000,
-          },
-        })),
-      setTrackProgress: (trackProgress: number) =>
-        set((state) => ({
-          playback: {
-            ...state.playback,
-            progress_ms: trackProgress,
-          },
-        })),
-      setContext: (context: Album) =>
-        set((state) => ({
-          ...state,
-          playback: {
-            ...state.playback,
-            context: {
-              external_urls: { spotify: context.external_urls.spotify },
-              href: context.href,
-              type: "album",
-              uri: context.uri,
-            },
-          },
-        })),
-
       albums: [],
-      setAlbums: (albums: Album[]) => set({ albums }),
+      setAlbums: (albums: MyAlbum[]) => set({ albums }),
+      playlists: [],
+      setPlaylists: (playlists: SimplePlaylist[]) => set({ playlists }),
     }),
     {
       name: "spotify-storage",

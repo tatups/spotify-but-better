@@ -1,6 +1,7 @@
 import { getSpotifyAccessToken } from "../utils";
 import {
   type Album,
+  type MyAlbum,
   type PaginatedResponse,
   type PlaybackState,
   type Playlist,
@@ -10,9 +11,7 @@ import {
   type StartResumePlaybackRequest,
 } from "./types";
 
-export async function GetMyAlbums(): Promise<
-  PaginatedResponse<ResponseMyAlbum>
-> {
+export async function GetMyAlbums(): Promise<MyAlbum[]> {
   const token = await getSpotifyAccessToken();
   if (!token) {
     throw new Error("No access token found");
@@ -30,12 +29,21 @@ export async function GetMyAlbums(): Promise<
 
   const data = (await response.json()) as PaginatedResponse<ResponseMyAlbum>;
 
-  return data;
+  const mapped = data.items.map((item) => {
+    const tracks = item.album.tracks.items.map((track) => {
+      return {
+        ...track,
+        album: { ...item.album },
+      };
+    });
+
+    return { ...item, album: { ...item.album, tracks } };
+  });
+
+  return mapped;
 }
 
-export async function GetMyPlaylists(): Promise<
-  PaginatedResponse<SimplePlaylist>
-> {
+export async function GetMyPlaylists(): Promise<SimplePlaylist[]> {
   const token = await getSpotifyAccessToken();
   if (!token) {
     throw new Error("No access token found");
@@ -53,7 +61,11 @@ export async function GetMyPlaylists(): Promise<
 
   const data = (await response.json()) as PaginatedResponse<SimplePlaylist>;
 
-  return data;
+  const mapped = data.items.map((item) => {
+    return item;
+  });
+
+  return mapped;
 }
 
 export async function getPlaylist(playlistId: string): Promise<Playlist> {

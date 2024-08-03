@@ -5,7 +5,7 @@ type ContextHeaderProps = {
 };
 
 export default function ContextHeader({ context }: ContextHeaderProps) {
-  const firstImage = context.images[0];
+  const firstImage = context.images?.length > 0 ? context.images[0] : false;
 
   const album = context.type === "album" ? context : null;
   const playlist = context.type === "playlist" ? context : null;
