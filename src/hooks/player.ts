@@ -83,6 +83,7 @@ function onStart(
   playerState: WebPlaybackState | null,
   context: Context | undefined,
   playable: Track | undefined,
+  position: number | undefined = undefined,
 ) {
   if (!player || !playerState) {
     return;
@@ -103,7 +104,10 @@ function onStart(
     throw new Error("Context is required when switching to a new track");
   }
 
-  return Actions.playAction(getOnPlayPayload(playable, context), playable?.id);
+  return Actions.playAction(
+    getOnPlayPayload(playable, context, position),
+    playable?.id,
+  );
 }
 
 function getOnPlayPayload(
@@ -111,7 +115,10 @@ function getOnPlayPayload(
   context: Context | undefined = undefined, //Optional. Spotify URI of the context to play. Valid contexts are albums, artists & playlists.
   fromPosition = 0,
 ): StartResumePlaybackRequest {
-  const base = { position_ms: fromPosition, context_uri: context?.uri };
+  const base = {
+    position_ms: fromPosition,
+    context_uri: context?.uri,
+  };
 
   if (!playable && !context) {
     throw new Error("playable or context is required");
@@ -121,7 +128,7 @@ function getOnPlayPayload(
     return {
       ...base,
       context_uri: context.uri,
-      offset: { position: 0 },
+      offset: { position: fromPosition ?? 0 },
     };
   }
 

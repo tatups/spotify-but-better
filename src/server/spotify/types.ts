@@ -161,9 +161,9 @@ export type PaginatedResponse<T> = {
   href: string;
   items: T[];
   limit: number;
-  next: string;
+  next: string | null;
   offset: number;
-  previous: string;
+  previous: string | null;
   total: number;
 };
 
@@ -184,4 +184,10 @@ export type StartResumePlaybackRequest = {
   uris?: string[];
 };
 
-export type Context = Album | Playlist;
+export type LikedTrackList = {
+  tracks: PaginatedResponse<LikedTrack>;
+  type: "liked-track-list";
+  uri: string;
+};
+
+export type Context = Album | Playlist | LikedTrackList;

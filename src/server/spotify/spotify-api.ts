@@ -263,11 +263,13 @@ async function getToken() {
   return token;
 }
 
-export async function getMySavedTracks(): Promise<LikedTrack[]> {
+export async function getMySavedTracks(): Promise<
+  PaginatedResponse<LikedTrack>
+> {
   const token = await getToken();
 
   const params = new URLSearchParams({
-    limit: "50",
+    limit: "20",
   });
   const res = await fetch(
     "https://api.spotify.com/v1/me/tracks?" + params.toString(),
@@ -286,9 +288,30 @@ export async function getMySavedTracks(): Promise<LikedTrack[]> {
   }
 
   const data = (await res.json()) as PaginatedResponse<LikedTrack>;
-  console.log(data, "hehe");
 
-  return data.items;
+  return data;
+}
+
+export async function getNextPage<T>(
+  url: string,
+): Promise<PaginatedResponse<T>> {
+  const token = await getToken();
+
+  const res = await fetch(url, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error(
+      `Failed to fetch next page: ${res.status} ${res.statusText}`,
+    );
+  }
+
+  const data = (await res.json()) as PaginatedResponse<T>;
+
+  return data;
 }
 
 async function pollForPlaybackState(

@@ -83,7 +83,7 @@ export default function TrackList({
   tracks: Track[];
 }) {
   return (
-    <ul className="divide-y divide-yellow-700 rounded-md text-yellow-500">
+    <ul className="divide-y divide-yellow-700 rounded-md text-yellow-500" on>
       {tracks.map((track, idx) => (
         <TrackItem
           key={track.id}

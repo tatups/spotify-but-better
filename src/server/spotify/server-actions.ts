@@ -1,5 +1,6 @@
 "use server";
 import {
+  getNextPage,
   nextTrack,
   previousTrack,
   startResumePlayback,
@@ -46,7 +47,15 @@ async function transferPlaybackAction(deviceId: string) {
   return await transferPlayback(deviceId);
 }
 
+async function fetchNextPage<T>(url: string) {
+  // Server Action
+  "use server";
+
+  return await getNextPage<T>(url);
+}
+
 export {
+  fetchNextPage,
   nextAction,
   pauseAction,
   playAction,

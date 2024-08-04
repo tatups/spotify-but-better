@@ -1,8 +1,4 @@
-import {
-  GetMyAlbums,
-  GetMyPlaylists,
-  getMySavedTracks,
-} from "~/server/spotify/spotify-api";
+import { GetMyAlbums, GetMyPlaylists } from "~/server/spotify/spotify-api";
 import InitSpotifyData from "./init-data";
 
 export default async function SpotifyContextWindow({
@@ -12,8 +8,6 @@ export default async function SpotifyContextWindow({
 }) {
   const playlists = await GetMyPlaylists();
   const albums = await GetMyAlbums();
-
-  await getMySavedTracks();
 
   return (
     <InitSpotifyData albums={albums} playlists={playlists}>
