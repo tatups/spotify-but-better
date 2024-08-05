@@ -191,3 +191,19 @@ export type LikedTrackList = {
 };
 
 export type Context = Album | Playlist | LikedTrackList;
+
+export type PaginatedTracksForContext<C> = C extends Album
+  ? PaginatedResponse<SimpleTrack>
+  : C extends Playlist
+    ? PaginatedResponse<PlaylistTrack>
+    : C extends LikedTrackList
+      ? PaginatedResponse<LikedTrack>
+      : never;
+
+export type TracksForContext<C> = C extends Album
+  ? SimpleTrack
+  : C extends Playlist
+    ? PlaylistTrack
+    : C extends LikedTrackList
+      ? LikedTrack
+      : never;

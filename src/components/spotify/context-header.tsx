@@ -1,3 +1,4 @@
+import { HeartIcon } from "@heroicons/react/24/solid";
 import { type Context } from "~/server/spotify/types";
 
 type ContextHeaderProps = {
@@ -22,11 +23,12 @@ export default function ContextHeader({ context }: ContextHeaderProps) {
   }
 
   return (
-    <div className="flex bg-fuchsia-600 text-yellow-500">
+    <div className="mb-3 flex border-b-2 border-yellow-500 bg-fuchsia-600 pb-2 text-yellow-500">
       <div className="flex-shrink-0">
         {firstImage && !likedTrackList && (
           <img src={firstImage.url} alt={context.name} className="size-64" />
         )}
+        {likedTrackList && <HeartIcon className="size-24" />}
       </div>
       <div className="flex flex-col justify-between px-4 pt-4">
         <h2 className="text-3xl">
@@ -41,7 +43,7 @@ export default function ContextHeader({ context }: ContextHeaderProps) {
             </p>
           )}
 
-          <span>{" - "}</span>
+          {!likedTrackList && <span>{" - "}</span>}
           {<p className="text-lg">{totalTracks} tracks</p>}
         </div>
       </div>

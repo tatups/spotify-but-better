@@ -36,6 +36,8 @@ export default function Player({ spotfifyAccessToken }: PlayerProps) {
     void player?.setVolume(value / 100);
   }, 300);
 
+  const artists = currentTrack?.artists.map((artist) => artist.name).join(", ");
+
   return (
     <div className="flex h-16 items-center justify-center space-x-2 bg-fuchsia-800 px-4 py-8 text-lg text-yellow-500">
       {player !== null && (
@@ -72,7 +74,7 @@ export default function Player({ spotfifyAccessToken }: PlayerProps) {
             }}
           />
           <>
-            <span>{currentTrack?.name}</span>
+            <span>{(artists ? artists + " - " : "") + currentTrack?.name}</span>
             <span>
               {dayjs
                 .duration(playbackState?.position ?? 0, "milliseconds")

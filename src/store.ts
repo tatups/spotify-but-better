@@ -1,7 +1,12 @@
 import type {} from "@redux-devtools/extension"; // required for devtools typing
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
-import { type MyAlbum, type SimplePlaylist } from "~/server/spotify/types";
+import {
+  emptyPaginatedResponse,
+  type LikedTrackList,
+  type MyAlbum,
+  type SimplePlaylist,
+} from "~/server/spotify/types";
 import {
   type SpotifyPlayer,
   type WebPlaybackState,
@@ -12,6 +17,8 @@ export interface SpotifyState {
   setAlbums: (albums: MyAlbum[]) => void;
   playlists: SimplePlaylist[];
   setPlaylists: (playlists: SimplePlaylist[]) => void;
+  likedTracks: LikedTrackList;
+  setLikedTracks: (likedTracks: LikedTrackList) => void;
 
   sdkPlayer: SpotifyPlayer | null;
   sdkPlaybackState: WebPlaybackState | null;
@@ -20,39 +27,6 @@ export interface SpotifyState {
   setSdkPlaybackState: (state: WebPlaybackState) => void;
   setPosition: (position: number) => void;
 }
-
-export const emptyPlaybackState = {
-  device: {
-    id: "",
-    is_active: false,
-    is_private_session: false,
-    is_restricted: false,
-    name: "",
-    type: "",
-    volume_percent: 0,
-    supports_volume: false,
-  },
-  repeat_state: "",
-  shuffle_state: false,
-  context: null,
-  timestamp: 0,
-  progress_ms: null,
-  is_playing: false,
-  item: null,
-  currently_playing_type: "",
-  actions: {
-    interrupting_playback: false,
-    pausing: false,
-    resuming: false,
-    seeking: false,
-    skipping_next: false,
-    skipping_prev: false,
-    toggling_repeat_context: false,
-    toggling_shuffle: false,
-    toggling_repeat_track: false,
-    transferring_playback: false,
-  },
-};
 
 import { type StoreApi, type UseBoundStore } from "zustand";
 
@@ -92,6 +66,12 @@ const useSpotifyStoreBase = create<SpotifyState>()(
       setAlbums: (albums: MyAlbum[]) => set({ albums }),
       playlists: [],
       setPlaylists: (playlists: SimplePlaylist[]) => set({ playlists }),
+      likedTracks: {
+        type: "liked-track-list",
+        tracks: { ...emptyPaginatedResponse },
+        uri: "",
+      },
+      setLikedTracks: (likedTracks: LikedTrackList) => set({ likedTracks }),
     }),
     {
       name: "spotify-storage",

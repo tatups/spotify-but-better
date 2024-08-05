@@ -56,7 +56,7 @@ function initializePlayer(
       });
 
       player.addListener("player_state_changed", (params) => {
-        console.log("player_state_changed", params);
+        //  console.log("player_state_changed", params);
         setSdkPlaybackState((params as WebPlaybackState) ?? null);
       });
 
