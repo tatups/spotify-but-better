@@ -100,7 +100,7 @@ export default function VirtualTrackList<C extends Context>({
 }: {
   context: C;
   tracks: PaginatedResponse<TracksForContext<C>>;
-  setTracks?: (tracks: TracksForContext<C>[]) => void;
+  setTracks?: (tracks: PaginatedResponse<TracksForContext<C>>) => void;
 }) {
   const parentRef = useRef<HTMLDivElement | null>(null);
   const [allRows, setAllRows] = useState(tracks.items);
@@ -135,7 +135,10 @@ export default function VirtualTrackList<C extends Context>({
           setNextPage(res.next);
           setAllRows([...allRows, ...res.items]);
           setFetching(false);
-          setTracks ? setTracks([...allRows, ...res.items]) : null;
+          // if(setTracks) {
+
+          // }
+          // setTracks ? setTracks([...allRows, ...res.items]) : null;
         })
         .catch((err) => {
           setFetching(false);
@@ -165,7 +168,7 @@ export default function VirtualTrackList<C extends Context>({
   ]);
 
   return (
-    <div className="h-full max-h-full w-full overflow-auto" ref={parentRef}>
+    <div className="h-[500px] w-full overflow-auto" ref={parentRef}>
       <ul
         className="relative rounded-md text-yellow-500"
         style={{

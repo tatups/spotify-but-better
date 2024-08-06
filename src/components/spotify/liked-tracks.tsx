@@ -2,16 +2,23 @@
 
 import ContextHeader from "~/components/spotify/context-header";
 import VirtualTrackList from "~/components/spotify/virtual-track-list";
-import { type LikedTrack } from "~/server/spotify/types";
+import {
+  type LikedTrack,
+  type PaginatedResponse,
+} from "~/server/spotify/types";
 import { useSpotifyStore } from "~/store";
 
 export default function LikedTracks() {
   const liked = useSpotifyStore.use.likedTracks();
+  const setLiked = useSpotifyStore.use.setLikedTracks();
 
-  console.log(liked, "liked");
-
-  const setTracks = (tracks: LikedTrack[]) => {
-    //console.log(tracks, "tracks");
+  const setTracks = (tracks: PaginatedResponse<LikedTrack>) => {
+    setLiked({
+      ...liked,
+      tracks: {
+        ...tracks,
+      },
+    });
   };
 
   return (

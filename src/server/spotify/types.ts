@@ -108,7 +108,7 @@ export type Playlist = SimplePlaylist & {
   tracks: PaginatedResponse<PlaylistTrack>;
 };
 
-type PlaylistTrack = {
+export type PlaylistTrack = {
   added_at: string;
   is_local: boolean;
   track: Track;
