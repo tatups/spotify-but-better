@@ -1,6 +1,5 @@
 import { getSpotifyAccessToken } from "../utils";
 import {
-  type Album,
   type LikedTrack,
   type MyAlbum,
   type PaginatedResponse,
@@ -8,6 +7,7 @@ import {
   type Playlist,
   type ResponseAlbum,
   type ResponseMyAlbum,
+  type SearchResult,
   type SimplePlaylist,
   type StartResumePlaybackRequest,
 } from "./types";
@@ -93,7 +93,7 @@ export async function getPlaylist(playlistId: string): Promise<Playlist> {
   return data;
 }
 
-export async function getAlbum(albumId: string): Promise<Album> {
+export async function getAlbum(albumId: string): Promise<ResponseAlbum> {
   const token = await getSpotifyAccessToken();
   if (!token) {
     throw new Error("No access token found");
@@ -109,10 +109,7 @@ export async function getAlbum(albumId: string): Promise<Album> {
     );
   }
 
-  const data = (await response.json()) as ResponseAlbum;
-  const tracks = data.tracks.items.map((el) => ({ ...el, album: data }));
-
-  return { ...data, tracks };
+  return (await response.json()) as ResponseAlbum;
 }
 
 export async function getPlaybackState(): Promise<PlaybackState | null> {
@@ -310,6 +307,35 @@ export async function getNextPage<T>(
   }
 
   const data = (await res.json()) as PaginatedResponse<T>;
+
+  return data;
+}
+
+export async function search(query: string) {
+  const token = await getToken();
+
+  const params = new URLSearchParams({
+    limit: "5",
+    q: query,
+    type: ["album", "artist", "playlist", "track"].join(","),
+  });
+  const res = await fetch(
+    "https://api.spotify.com/v1/search?" + params.toString(),
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    },
+  );
+
+  if (!res.ok) {
+    console.log(await res.json(), "res");
+    throw new Error(
+      `Failed to fetch saved tracks: ${res.status} ${res.statusText}`,
+    );
+  }
+
+  const data = (await res.json()) as SearchResult;
 
   return data;
 }

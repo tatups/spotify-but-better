@@ -5,6 +5,7 @@ import {
   emptyPaginatedResponse,
   type LikedTrackList,
   type MyAlbum,
+  type SearchResult,
   type SimplePlaylist,
 } from "~/server/spotify/types";
 import {
@@ -26,6 +27,9 @@ export interface SpotifyState {
   setSdkPlayer: (player: SpotifyPlayer) => void;
   setSdkPlaybackState: (state: WebPlaybackState) => void;
   setPosition: (position: number) => void;
+
+  searchResults: SearchResult | null;
+  setSearchResults: (results: SearchResult) => void;
 }
 
 import { type StoreApi, type UseBoundStore } from "zustand";
@@ -72,6 +76,10 @@ const useSpotifyStoreBase = create<SpotifyState>()(
         uri: "",
       },
       setLikedTracks: (likedTracks: LikedTrackList) => set({ likedTracks }),
+
+      searchResults: null,
+      setSearchResults: (results: SearchResult) =>
+        set({ searchResults: results }),
     }),
     {
       name: "spotify-storage",

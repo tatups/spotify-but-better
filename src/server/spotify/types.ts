@@ -207,3 +207,10 @@ export type TracksForContext<C> = C extends Album
     : C extends LikedTrackList
       ? LikedTrack
       : never;
+
+export type SearchResult = {
+  albums: PaginatedResponse<Album>;
+  artists: PaginatedResponse<Artist>;
+  playlists: PaginatedResponse<SimplePlaylist>;
+  tracks: PaginatedResponse<Track>;
+};

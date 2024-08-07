@@ -11,7 +11,7 @@ import { useState } from "react";
 import { twMerge } from "tailwind-merge";
 import useSpotifyPlayer from "~/hooks/player";
 
-function TrackItem({
+export function TrackItem({
   context,
   track,
   number,

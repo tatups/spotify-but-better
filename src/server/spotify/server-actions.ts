@@ -3,6 +3,7 @@ import {
   getNextPage,
   nextTrack,
   previousTrack,
+  search,
   startResumePlayback,
   stopPlayback,
   transferPlayback,
@@ -54,11 +55,18 @@ async function fetchNextPage<T>(url: string) {
   return await getNextPage<T>(url);
 }
 
+async function searchAction(query: string) {
+  "user server";
+
+  return await search(query);
+}
+
 export {
   fetchNextPage,
   nextAction,
   pauseAction,
   playAction,
   previousAction,
+  searchAction,
   transferPlaybackAction,
 };
