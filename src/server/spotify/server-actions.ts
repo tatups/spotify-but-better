@@ -56,7 +56,7 @@ async function fetchNextPage<T>(url: string) {
 }
 
 async function searchAction(query: string) {
-  "user server";
+  "use server";
 
   return await search(query);
 }

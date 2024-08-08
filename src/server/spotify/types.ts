@@ -190,7 +190,7 @@ export type LikedTrackList = {
   uri: string;
 };
 
-export type Context = Album | Playlist | LikedTrackList;
+export type Context = Album | SimplePlaylist | Playlist | LikedTrackList;
 
 export type PaginatedTracksForContext<C> = C extends Album
   ? PaginatedResponse<SimpleTrack>

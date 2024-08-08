@@ -13,6 +13,18 @@ const config = {
         hostname: "tailwindui.com",
         protocol: "https",
       },
+      {
+        hostname: "i.scdn.co",
+        protocol: "https",
+      },
+      {
+        hostname: "image-cdn-ak.spotifycdn.com",
+        protocol: "https",
+      },
+      {
+        hostname: "*.spotifycdn.com",
+        protocol: "https",
+      },
     ],
   },
 };

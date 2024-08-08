@@ -29,7 +29,7 @@ export interface SpotifyState {
   setPosition: (position: number) => void;
 
   searchResults: SearchResult | null;
-  setSearchResults: (results: SearchResult) => void;
+  setSearchResults: (results: SearchResult | null) => void;
 }
 
 import { type StoreApi, type UseBoundStore } from "zustand";

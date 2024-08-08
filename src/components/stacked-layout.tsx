@@ -7,7 +7,7 @@ import { redirect } from "next/navigation";
 import NavigationMenuItem from "./navigation-menu-item";
 import SpotifyContextWindow from "./spotify/context-window";
 import PlaybackInfo from "./spotify/playback-info";
-import SearchField from "./spotify/search";
+import SearchField from "./spotify/search/search-view";
 import Sidebar from "./spotify/sidebar";
 
 const userNavigation = [

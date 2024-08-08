@@ -1,11 +1,17 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
+import { useDebouncedCallback } from "use-debounce";
+import useSpotifyPlayer from "~/hooks/player";
 import { searchAction } from "~/server/spotify/server-actions";
 import { useSpotifyStore } from "~/store";
+import AlbumsView from "./albums-view";
+import PlaylistsView from "./playlists.view";
+import SongsView from "./songs-view";
 
-function SearchView() {
+export function SearchView() {
   const res = useSpotifyStore.use.searchResults();
+  const player = useSpotifyPlayer();
 
   if (!res) {
     return null;
@@ -15,11 +21,9 @@ function SearchView() {
 
   return (
     <div className="flex flex-col space-y-8">
-      <div>{/* Songs */}
-    {tracks.items.map((track) => (
-        
-
-      </div>
+      <SongsView tracks={tracks.items} spotifyPlayer={player} />
+      <AlbumsView albums={albums.items} spotifyPlayer={player} />
+      <PlaylistsView playlists={playlists.items} spotifyPlayer={player} />
     </div>
   );
 }
@@ -30,10 +34,14 @@ export default function SearchField() {
 
   const setSearchResults = useSpotifyStore.use.setSearchResults();
 
-  const onSearch = async (query: string) => {
+  const onSearch = useDebouncedCallback(async (query: string) => {
+    if (!query) {
+      setSearchResults(null);
+      return;
+    }
     const res = await searchAction(query);
     setSearchResults(res);
-  };
+  }, 500);
 
   return (
     <div className="flex w-full max-w-sm items-center">

@@ -15,10 +15,12 @@ export function TrackItem({
   context,
   track,
   number,
+  image,
 }: {
   context: Context;
   track: Track;
   number?: number;
+  image?: string;
 }) {
   const { player, playbackState: playback, onPlay } = useSpotifyPlayer();
 
@@ -31,12 +33,13 @@ export function TrackItem({
     <div
       key={track.id}
       className={twMerge(
-        "flex items-center space-x-2 px-2 py-2 text-lg text-yellow-500",
+        "flex items-center space-x-2 px-2 py-2 text-lg text-yellow-400",
         current ? "text-green-500" : "",
       )}
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
     >
+      {image && <img src={image} className="size-12" />}
       {isHovering && isPlaying && (
         <span>
           <HandRaisedIcon
@@ -50,7 +53,7 @@ export function TrackItem({
 
       {isHovering && !isPlaying && (
         <PlayIcon
-          className="size-6 cursor-pointer text-yellow-500"
+          className="size-6 cursor-pointer text-yellow-400"
           onClick={() => {
             if (current) {
               void player?.resume();
@@ -64,13 +67,25 @@ export function TrackItem({
       {!isHovering && isPlaying && (
         <RocketLaunchIcon className="size-6 cursor-pointer text-red-500" />
       )}
-
-      {!isHovering && !isPlaying && <span>{number ?? track.track_number}</span>}
-      <span>{track.name}</span>
-      <span> - </span>
-      <span>
-        {dayjs.duration(track.duration_ms, "milliseconds").format("m:ss")}
-      </span>
+      <div className="flex flex-col">
+        <div>
+          {!isHovering && !isPlaying && !image && (
+            <span>{number ?? track.track_number}</span>
+          )}
+          <span>{track.name}</span>
+          <span> - </span>
+          <span>
+            {dayjs.duration(track.duration_ms, "milliseconds").format("m:ss")}
+          </span>
+        </div>
+        <div>
+          <span className="text-sm text-yellow-500">
+            {track.artists.map((el) => (
+              <span key={el.id}>{el.name}</span>
+            ))}
+          </span>
+        </div>
+      </div>
     </div>
   );
 }

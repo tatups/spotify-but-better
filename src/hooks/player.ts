@@ -189,3 +189,5 @@ export default function useSpotifyPlayer() {
     player: sdkPlayer,
   };
 }
+
+export type SpotifyPlayer = ReturnType<typeof useSpotifyPlayer>;
