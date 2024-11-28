@@ -9,6 +9,11 @@ export default async function AlbumPage({
 }) {
   const album = await getAlbum(params.id);
 
+  //sleep for 1 second to simulate loading
+  await new Promise((resolve) => setTimeout(resolve, 3000));
+
+  throw new Error("Not implemented");
+
   return (
     <div className="">
       <ContextHeader context={album} />

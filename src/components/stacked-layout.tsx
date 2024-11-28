@@ -95,9 +95,9 @@ export default function StackedLayout({
             <div className="w-80 shrink-0 overflow-auto bg-fuchsia-600 text-yellow-500">
               <Sidebar />
             </div>
-            <div className="w-full max-w-7xl overflow-auto bg-fuchsia-600 py-10">
-              <main className="">
-                <div className="mx-auto px-4 sm:px-6 lg:px-8">{children}</div>
+            <div className="h-full w-full max-w-7xl overflow-auto bg-fuchsia-600 py-10">
+              <main className="mx-auto h-full px-4 sm:px-6 lg:px-8">
+                {children}
               </main>
             </div>
           </div>
